@@ -1,0 +1,27 @@
+name: Daily News Email
+
+on:
+  schedule:
+    - cron: '0 14 * * *'  # 7 AM Pacific Time
+  workflow_dispatch:
+
+jobs:
+  send-news:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run script
+        env:
+          NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+          TO_EMAIL: ${{ secrets.TO_EMAIL }}
+        run: python daily_news.py
+cd ,,

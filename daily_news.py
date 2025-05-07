@@ -2,6 +2,7 @@ import os
 import openai
 import requests
 import smtplib
+from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 # Settings
@@ -32,29 +33,37 @@ def summarize(text):
     except Exception as e:
         return f"Summary error: {str(e)}"
 
-def build_email_body():
-    body = ""
+def build_email_body_html():
+    body = "<html><body>"
+    body += "<h2>📰 Daily News Summary</h2>"
+
     for topic in TOPICS:
-        body += f"\n---\n**{topic}**\n"
+        body += f"<h3>{topic}</h3><ul>"
         articles = fetch_articles(topic)
         for article in articles:
             title = article['title']
             url = article['url']
             content = article.get('description') or article.get('content') or title
             summary = summarize(content)
-            body += f"\n• [{title}]({url})\n{summary}\n"
+            body += f"<li><a href='{url}'>{title}</a><br><small>{summary}</small></li><br>"
+        body += "</ul><hr>"
+
+    body += "</body></html>"
     return body
 
-def send_email(subject, body):
-    msg = MIMEText(body, "plain")
+def send_email(subject, html_body):
+    msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
     msg["From"] = EMAIL_USER
     msg["To"] = TO_EMAIL
+
+    part = MIMEText(html_body, "html")
+    msg.attach(part)
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(EMAIL_USER, EMAIL_PASS)
         server.sendmail(EMAIL_USER, TO_EMAIL, msg.as_string())
 
 if __name__ == "__main__":
-    email_body = build_email_body()
-    send_email("Your Daily West Seattle + Delridge News Summary", email_body)
+    email_body = build_email_body_html()
+    send_email("Your Daily West Seattle + Delridge News", email_body)
