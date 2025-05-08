@@ -16,9 +16,14 @@ TO_EMAIL = os.environ["TO_EMAIL"]
 openai.api_key = OPENAI_API_KEY
 
 def fetch_articles(query):
-    url = f"https://newsapi.org/v2/everything?q={query}&sortBy=publishedAt&language=en&apiKey={NEWSAPI_KEY}"
-    response = requests.get(url)
-    return response.json().get("articles", [])[:5]
+    try:
+        url = f"https://newsapi.org/v2/everything?q={query}&sortBy=publishedAt&language=en&apiKey={NEWSAPI_KEY}"
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an exception for bad status codes
+        return response.json().get("articles", [])[:5]
+    except Exception as e:
+        print(f"Error fetching articles for {query}: {str(e)}")
+        return []
 
 def summarize(text):
     try:
@@ -52,18 +57,18 @@ def build_email_body_html():
     return body
 
 def send_email(subject, html_body):
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"] = EMAIL_USER
-    msg["To"] = TO_EMAIL
+    try:
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"] = EMAIL_USER
+        msg["To"] = TO_EMAIL
 
-    part = MIMEText(html_body, "html")
-    msg.attach(part)
+        part = MIMEText(html_body, "html")
+        msg.attach(part)
 
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-        server.login(EMAIL_USER, EMAIL_PASS)
-        server.sendmail(EMAIL_USER, TO_EMAIL, msg.as_string())
-
-if __name__ == "__main__":
-    email_body = build_email_body_html()
-    send_email("Your Daily West Seattle + Delridge News", email_body)
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(EMAIL_USER, EMAIL_PASS)
+            server.sendmail(EMAIL_USER, TO_EMAIL, msg.as_string())
+    except Exception as e:
+        print(f"Error sending email: {str(e)}")
+        raise  # Re-raise the exception to fail the GitHub Action
