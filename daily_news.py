@@ -66,9 +66,17 @@ def send_email(subject, html_body):
         part = MIMEText(html_body, "html")
         msg.attach(part)
 
+        print(f"Attempting to send email to {TO_EMAIL} from {EMAIL_USER}")
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            print("Connected to SMTP server")
             server.login(EMAIL_USER, EMAIL_PASS)
+            print("Successfully logged in")
             server.sendmail(EMAIL_USER, TO_EMAIL, msg.as_string())
+            print("Email sent successfully")
+    except smtplib.SMTPAuthenticationError as e:
+        print(f"SMTP Authentication Error: {str(e)}")
+        print("This usually means the email password is incorrect. Make sure you're using an App Password for Gmail.")
+        raise
     except Exception as e:
         print(f"Error sending email: {str(e)}")
-        raise  # Re-raise the exception to fail the GitHub Action
+        raise
