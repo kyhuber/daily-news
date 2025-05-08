@@ -66,20 +66,12 @@ def send_email(subject, html_body):
         part = MIMEText(html_body, "html")
         msg.attach(part)
 
-        print(f"Attempting to send email to {TO_EMAIL} from {EMAIL_USER}")
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            print("Connected to SMTP server")
             server.login(EMAIL_USER, EMAIL_PASS)
-            print("Successfully logged in")
             server.sendmail(EMAIL_USER, TO_EMAIL, msg.as_string())
-            print("Email sent successfully")
-    except smtplib.SMTPAuthenticationError as e:
-        print(f"SMTP Authentication Error: {str(e)}")
-        print("This usually means the email password is incorrect. Make sure you're using an App Password for Gmail.")
-        raise
     except Exception as e:
         print(f"Error sending email: {str(e)}")
-        raise
+        raise  # Re-raise the exception to fail the GitHub Action
 
 def verify_secrets():
     print("Verifying environment variables are set...")
@@ -102,15 +94,5 @@ def verify_secrets():
 if __name__ == "__main__":
     verify_secrets()
     
-    # Send a test email first
-    test_html = "<html><body><h1>Test Email</h1><p>This is a test email to verify configuration.</p></body></html>"
-    try:
-        send_email("Test Email Configuration", test_html)
-        print("Test email sent successfully!")
-    except Exception as e:
-        print(f"Test email failed: {str(e)}")
-        raise
-    
-    # Then send the actual news email
     email_body = build_email_body_html()
     send_email("Your Daily West Seattle + Delridge News", email_body)
