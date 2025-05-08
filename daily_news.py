@@ -27,14 +27,14 @@ def fetch_articles(query):
 
 def summarize(text):
     try:
-        response = openai.ChatCompletion.create(
+        response = openai.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "Summarize each news article in 2 concise sentences."},
                 {"role": "user", "content": text}
             ]
         )
-        return response['choices'][0]['message']['content'].strip()
+        return response.choices[0].message.content.strip()
     except Exception as e:
         return f"Summary error: {str(e)}"
 
