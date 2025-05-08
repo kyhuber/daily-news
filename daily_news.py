@@ -6,7 +6,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 # Settings
-TOPICS = ["West Seattle", "Delridge"]
+TOPICS = ["West Seattle", "Delridge", "White Center"]
 NEWSAPI_KEY = os.environ["NEWSAPI_KEY"]
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 EMAIL_USER = os.environ["EMAIL_USER"]
