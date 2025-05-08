@@ -17,7 +17,9 @@ openai.api_key = OPENAI_API_KEY
 
 def fetch_articles(query):
     try:
-        url = f"https://newsapi.org/v2/everything?q={query}&sortBy=publishedAt&language=en&apiKey={NEWSAPI_KEY}"
+        # Wrap the query in quotes to search for the exact phrase
+        quoted_query = f'"{query}"'
+        url = f"https://newsapi.org/v2/everything?q={quoted_query}&sortBy=publishedAt&language=en&apiKey={NEWSAPI_KEY}"
         response = requests.get(url)
         response.raise_for_status()  # Raise an exception for bad status codes
         return response.json().get("articles", [])[:5]
