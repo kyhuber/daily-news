@@ -80,3 +80,37 @@ def send_email(subject, html_body):
     except Exception as e:
         print(f"Error sending email: {str(e)}")
         raise
+
+def verify_secrets():
+    print("Verifying environment variables are set...")
+    secrets = {
+        "NEWSAPI_KEY": NEWSAPI_KEY,
+        "OPENAI_API_KEY": OPENAI_API_KEY,
+        "EMAIL_USER": EMAIL_USER,
+        "EMAIL_PASS": EMAIL_PASS,
+        "TO_EMAIL": TO_EMAIL
+    }
+    
+    for name, value in secrets.items():
+        if not value:
+            print(f"ERROR: {name} is not set!")
+        else:
+            # Only show first 4 chars for security
+            masked = value[:4] + "..." if len(value) > 4 else "***"
+            print(f"{name} is set: {masked}")
+
+if __name__ == "__main__":
+    verify_secrets()
+    
+    # Send a test email first
+    test_html = "<html><body><h1>Test Email</h1><p>This is a test email to verify configuration.</p></body></html>"
+    try:
+        send_email("Test Email Configuration", test_html)
+        print("Test email sent successfully!")
+    except Exception as e:
+        print(f"Test email failed: {str(e)}")
+        raise
+    
+    # Then send the actual news email
+    email_body = build_email_body_html()
+    send_email("Your Daily West Seattle + Delridge News", email_body)
