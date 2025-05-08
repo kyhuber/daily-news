@@ -24,4 +24,4 @@ jobs:
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
           TO_EMAIL: ${{ secrets.TO_EMAIL }}
         run: python daily_news.py
-cd ,,
+cd
