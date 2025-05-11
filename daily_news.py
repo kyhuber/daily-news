@@ -12,6 +12,7 @@ OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 EMAIL_USER = os.environ["EMAIL_USER"]
 EMAIL_PASS = os.environ["EMAIL_PASS"]
 TO_EMAIL = os.environ["TO_EMAIL"]
+FRED_API_KEY = os.environ["FRED_API_KEY"]
 
 openai.api_key = OPENAI_API_KEY
 

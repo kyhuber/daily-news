@@ -23,4 +23,5 @@ jobs:
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
           TO_EMAIL: ${{ secrets.TO_EMAIL }}
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
         run: python daily_news.py
