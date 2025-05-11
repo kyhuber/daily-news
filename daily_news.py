@@ -6,7 +6,12 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 # Settings
-TOPICS = ["West Seattle", "Delridge", '"White Center" AND "Seattle"', '"Highland Park" AND "Seattle"']
+TOPICS = {
+    "West Seattle": "West Seattle",
+    "Delridge": "Delridge",
+    '"White Center" AND "Seattle"': "White Center",
+    '"Highland Park" AND "Seattle"': "Highland Park"
+}
 NEWSAPI_KEY = os.environ["NEWSAPI_KEY"]
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 EMAIL_USER = os.environ["EMAIL_USER"]
@@ -17,16 +22,35 @@ FRED_API_KEY = os.environ["FRED_API_KEY"]
 openai.api_key = OPENAI_API_KEY
 
 def fetch_articles(query):
-    try:
-        # Wrap the query in quotes to search for the exact phrase
-        quoted_query = f'"{query}"'
-        url = f"https://newsapi.org/v2/everything?q={quoted_query}&sortBy=publishedAt&language=en&apiKey={NEWSAPI_KEY}"
-        response = requests.get(url)
-        response.raise_for_status()  # Raise an exception for bad status codes
-        return response.json().get("articles", [])[:5]
-    except Exception as e:
-        print(f"Error fetching articles for {query}: {str(e)}")
-        return []
+    url = f"https://newsapi.org/v2/everything?q={query}&sortBy=publishedAt&language=en&apiKey={NEWSAPI_KEY}"
+    response = requests.get(url)
+    articles = response.json().get("articles", [])
+
+    # Post-filtering for phrase + "Seattle" logic
+    phrase = None
+    if '"White Center"' in query:
+        phrase = "white center"
+    elif '"Highland Park"' in query:
+        phrase = "highland park"
+
+    filtered = []
+    for article in articles:
+        content = (
+            (article.get("title") or "") +
+            " " +
+            (article.get("description") or "") +
+            " " +
+            (article.get("content") or "")
+        ).lower()
+
+        if phrase:
+            if phrase in content and "seattle" in content:
+                filtered.append(article)
+        else:
+            filtered.append(article)
+
+    return filtered[:5]
+
     
 def get_mortgage_rate():
     fred_api_key = os.environ["FRED_API_KEY"]
@@ -60,10 +84,10 @@ def build_email_body_html():
     rate = get_mortgage_rate()
     body += f"<p><strong>📉 30-Year Fixed Mortgage Rate:</strong> {rate:.2f}%</p><br>"
 
-    for topic in TOPICS:
-        body += f"<h3 style='color:#2a6ebb;'>{topic}</h3><ul>"
+    for query, display_name in TOPICS.items():
+        body += f"<h3 style='color:#2a6ebb;'>{display_name}</h3><ul>"
 
-        articles = fetch_articles(topic)
+        articles = fetch_articles(query)
         for article in articles:
             title = article['title']
             url = article['url']
