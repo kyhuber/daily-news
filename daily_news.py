@@ -7,7 +7,7 @@ from email.mime.text import MIMEText
 
 # Settings
 TOPICS = {
-    "West Seattle": "West Seattle",
+    '"West Seattle"': "West Seattle",
     "Delridge": "Delridge",
     '"White Center" AND "Seattle"': "White Center",
     '"Highland Park" AND "Seattle"': "Highland Park"
