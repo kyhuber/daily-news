@@ -6,7 +6,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 # Settings
-TOPICS = ["West Seattle", "Delridge", "White Center"]
+TOPICS = ["West Seattle", "Delridge", '"White Center" AND "Seattle"', '"Highland Park" AND "Seattle"']
 NEWSAPI_KEY = os.environ["NEWSAPI_KEY"]
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 EMAIL_USER = os.environ["EMAIL_USER"]
@@ -26,6 +26,15 @@ def fetch_articles(query):
     except Exception as e:
         print(f"Error fetching articles for {query}: {str(e)}")
         return []
+    
+def get_mortgage_rate():
+    fred_api_key = os.environ["FRED_API_KEY"]
+    url = f"https://api.stlouisfed.org/fred/series/observations?series_id=MORTGAGE30US&api_key={fred_api_key}&file_type=json"
+    response = requests.get(url)
+    data = response.json()
+    latest = data["observations"][-1]
+    return float(latest["value"])
+
 
 def summarize(text):
     try:
@@ -41,19 +50,33 @@ def summarize(text):
         return f"Summary error: {str(e)}"
 
 def build_email_body_html():
-    body = "<html><body>"
-    body += "<h2>📰 Daily News Summary</h2>"
+    body = """
+    <html>
+    <body style="font-family: Arial, sans-serif; line-height: 1.5;">
+        <h2>📰 Daily News Summary</h2>
+    """
+
+    rate = get_mortgage_rate()
+    body += f"<p><strong>📉 30-Year Fixed Mortgage Rate:</strong> {rate:.2f}%</p><br>"
 
     for topic in TOPICS:
-        body += f"<h3>{topic}</h3><ul>"
+        body += f"<h3 style='color:#2a6ebb;'>{topic}</h3><ul>"
+
         articles = fetch_articles(topic)
         for article in articles:
             title = article['title']
             url = article['url']
             content = article.get('description') or article.get('content') or title
             summary = summarize(content)
-            body += f"<li><a href='{url}'>{title}</a><br><small>{summary}</small></li><br>"
-        body += "</ul><hr>"
+
+            body += f"""
+                <li style="margin-bottom: 12px;">
+                    <p><strong><a href="{url}" target="_blank" style="text-decoration:none; color:#2a6ebb;">{title}</a></strong></p>
+                    <p style="margin-top:-8px;"><em>{summary}</em></p>
+                </li>
+            """
+
+        body += "</ul><hr style='margin:30px 0;'>"
 
     body += "</body></html>"
     return body
@@ -97,4 +120,4 @@ if __name__ == "__main__":
     verify_secrets()
     
     email_body = build_email_body_html()
-    send_email("Your Daily West Seattle + Delridge News", email_body)
+    send_email("Your Daily West Seattle + Delridge + Highland Park News", email_body)
